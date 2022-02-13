@@ -1,4 +1,4 @@
-    const apiError = require( '../Error/apiError' )
+const apiError = require( '../Error/apiError' )
 const { Categories } = require( "../Models/model" );
 
 class CategoriesAdminController {

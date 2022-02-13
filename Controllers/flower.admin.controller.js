@@ -1,5 +1,6 @@
 const apiError = require( '../Error/apiError' )
 const { Flower, Categories } = require( '../Models/model' )
+const fs = require( 'fs' )
 const path = require( 'path' )
 const uuid = require( 'uuid' )
 const sequelize = require( 'sequelize' )
@@ -124,9 +125,13 @@ class FlowerAdminController {
     async deleteFlower( req, res, next ) {
         try {
             let { id, categories } = req.body
+            const flower = await Flower.findOne( { where: { id } } )
+            await fs.unlink( path.resolve( __dirname, '..', 'static', flower.photo ), error => {
+                apiError.badRequest(error.message)
+            } )
             // categories = JSON.parse(categories)
             categories = [ 1, 2 ]
-            const flower = await Flower.destroy( { where: { id } } )
+            await Flower.destroy( { where: { id } } )
             await Categories.update(
                 { flower_ids: sequelize.fn( 'array_remove', sequelize.col( 'flower_ids' ), id ) },
                 {
@@ -137,7 +142,7 @@ class FlowerAdminController {
                     }
                 }
             )
-            return res.status( 200 ).json( { flower } )
+            return res.status( 200 ).json( { message: 'Flower was deleted' } )
         } catch ( error ) {
             next( apiError.badRequest( error.message ) )
         }
