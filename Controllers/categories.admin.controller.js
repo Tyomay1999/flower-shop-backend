@@ -1,4 +1,4 @@
-const apiError = require( '../Error/apiError' )
+    const apiError = require( '../Error/apiError' )
 const { Categories } = require( "../Models/model" );
 
 class CategoriesAdminController {
@@ -27,7 +27,6 @@ class CategoriesAdminController {
         } catch ( error ) {
             next( apiError.badRequest( error.message ) )
         }
-
     }
 
     async deleteCategory( req, res, next) {
