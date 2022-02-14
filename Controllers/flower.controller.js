@@ -1,18 +1,88 @@
 const apiError = require('../Error/apiError')
+const {Categories, Flower} = require("../Models/model");
+const {Op} = require('sequelize')
+
+//TODO need to change
+const handlerIdSorts = async data => {
+    const idsArray = []
+    data.forEach(item => {
+        item.flower_ids?.forEach(id => {
+            if (idsArray.length) {
+                let haveId = 0;
+                idsArray.forEach(selectedId => {
+                    if (selectedId === id) {
+                        haveId = 1
+                    }
+                })
+                if (!haveId) {
+                    idsArray.push(id)
+                }
+            }
+            if (!idsArray.length) {
+                idsArray.push(id)
+            }
+        })
+    })
+    return idsArray;
+}
+
 
 class FlowerController {
-    async allFlowers(req,res) {
+    async allFlowers(req, res, next) {
+        try {
+            const flowers = await Flower.findAll()
+            return res.status(200).json({flowers})
+        } catch (error) {
+            next(apiError.badRequest(error.message))
+        }
         res.status(200).json({message: 'all'})
     }
 
-    async getOne(req,res,next) {
-        const { slug } = req.params
-        if(!slug){
-            return next(apiError.badRequest('Slug not found'))
+    async getSimilar(req, res, next) {
+        try {
+            const {categories} = req.body
+            const similarFlowersCategories = await Categories.findAll({
+                where: {
+                    id: {
+                        [Op.or]: categories
+                    }
+                }
+            })
+            const flowersId = await handlerIdSorts(similarFlowersCategories)
+            const data = await Flower.findAll({
+                where: {
+                    id: {
+                        [Op.or]: flowersId
+                    }
+                }
+            })
+            return res.status(200).json({message: data})
+        } catch (error) {
+            next(apiError.badRequest(error.message))
         }
-        return res.status(200).json(slug)
     }
 
+    async getNewFlowers(req, res, next) {
+        try {
+            const newFlowers = await Flower.findAll({where: {isNew: false}})
+            return res.status(200).json({message : newFlowers})
+        } catch (error) {
+            next(apiError.badRequest(error.message))
+        }
+    }
+
+    async getOne(req, res, next) {
+        try {
+            const {slug} = req.params
+            if (!slug) {
+                return next(apiError.badRequest('Slug not found'))
+            }
+            const flower = await Flower.findOne({where: {slug}})
+            return res.status(200).json({flower})
+        } catch (error) {
+            next(apiError.badRequest(error.message))
+        }
+    }
 }
 
 module.exports = new FlowerController()
