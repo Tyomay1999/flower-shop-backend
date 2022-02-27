@@ -5,99 +5,84 @@ const path = require( 'path' )
 const uuid = require( 'uuid' )
 const sequelize = require( 'sequelize' )
 const { Op } = require( "sequelize" );
-const { rows } = require( "pg/lib/defaults" );
-
-// categories = JSON.parse(categories)
-// console.log(typeof JSON.parse(tags))
-// if(tags.length){
-//     tags = JSON.parse(tags)
-// }
-// let x = await Categories.findAll({
-//     where: {
-//         id: {
-//             [Op.or]: [1,2]
-//         }
-//     }
-// })
-// let x = await Categories.update(
-//     {flower_ids: sequelize.fn('array_append', sequelize.col('flower_ids'), 4)}
-//     ,{
-//     where: {
-//         id: {
-//             [Op.or]: [1,2]
-//         }
-//     }
-// })
-// let x = await Categories.update(
-//     {flower_ids: sequelize.fn('array_remove', sequelize.col('flower_ids'), 1)}
-//     ,{
-//         where: {
-//             id: {
-//                 [Op.or]: [1,2]
-//             }
-//         }
-//     })
 
 
 class FlowerAdminController {
     async getAll( req, res, next ) {
-    try{
-        let { category_id, prices, limit, page } = req.body
-        prices = prices || [0, 15]
-        limit = limit || 10
-        page = page || 1
-        const offset = page * limit - limit
-        if(category_id && !prices.length){
-            const category = await Categories.findOne({where: {id: category_id}})
-            const flowers = await Flower.findAndCountAll({
-                where: {
-                    id: {
-                        [Op.or] : category.flower_ids
+        try {
+            let { category_id, prices, limit, page } = req.body
+            // console.log(typeof category_id)
+            prices = prices || [ 0, 15 ]
+            limit = limit || 10
+            page = page || 1
+            const offset = page * limit - limit
+            if ( category_id && !prices.length ) {
+                const category = await Categories.findOne( { where: { id: category_id } } )
+                const flowers = await Flower.findAndCountAll( {
+                    where: {
+                        id: {
+                            [ Op.or ]: category.flower_ids
+                        }
+                    },
+                    limit,
+                    offset
+                } )
+                console.log( 'line 30 fl.ad.co' )
+                return res.status( 200 ).json( { count: flowers.count, flowers: flowers.rows } )
+            }
+            if ( !category_id && prices.length ) {
+                // prices = JSON.parse(prices)
+                const categories = await Categories.findAll()
+                const filteredFlowers = []
+                const flowers = await Flower.findAndCountAll( { limit, offset } )
+                flowers.rows.forEach( flower => {
+                    if ( prices[ 0 ] < flower.price && flower.price < prices[ 1 ] ) {
+                        filteredFlowers.push( { flower } )
                     }
-                },
-                limit,
-                offset
-            })
-            return res.status(200).json({count: flowers.count,flowers: flowers.rows})
-        }
-        if(!category_id && prices.length){
-            prices = JSON.parse(prices)
-            const filteredFlowers = []
-            const flowers = await Flower.findAndCountAll({ limit, offset })
-             flowers.rows.forEach(flower => {
-                if(prices[0] < flower.price && flower.price < prices[1]) {
-                   filteredFlowers.push({flower})
-                }
-            })
-            return res.status(200).json({count: flowers.count,flowers: filteredFlowers})
-        }
-        if(category_id && prices.length){
-            prices = JSON.parse(prices)
-            const filteredFlowers = []
-            const category = await Categories.findOne({where: {id: category_id}})
-            const flowers = await Flower.findAndCountAll({
-                where: {
-                    id: {
-                        [Op.or] : category.flower_ids
+                } )
+                flowers.rows.map( async ( product ) => {
+                    if ( product.categories.length ) {
+                        const categoriesArray = []
+                        product.categories.forEach( categoryId => {
+                            categoriesArray.push( categories.filter( category => category.id === categoryId )[0].name )
+                        } )
+                        product.categories = categoriesArray
                     }
-                },
-                limit,
-                offset
-            })
-            flowers.rows.forEach(flower => {
-                if(prices[0] < flower.price && flower.price < prices[1]) {
-                    filteredFlowers.push(flower)
-                }
-            })
-            return res.status(200).json({count: flowers.count,flowers: filteredFlowers})
+                } )
+                console.log( 'line 42 fl.ad.co' )
+                return res.status( 200 ).json( { count: flowers.count, flowers: filteredFlowers } )
+            }
+            if ( category_id && prices.length ) {
+
+                // prices = JSON.parse(prices)
+                const filteredFlowers = []
+                const category = await Categories.findOne( { where: { id: category_id } } )
+                const flowers = await Flower.findAndCountAll( {
+                    where: {
+                        id: {
+                            [ Op.or ]: category.flower_ids
+                        }
+                    },
+                    limit,
+                    offset
+                } )
+                console.log( 'line 59 fl.ad.co' )
+                flowers.rows.forEach( flower => {
+                    if ( prices[ 0 ] < flower.price && flower.price < prices[ 1 ] ) {
+                        filteredFlowers.push( flower )
+                    }
+                } )
+                return res.status( 200 ).json( { count: flowers.count, flowers: filteredFlowers } )
+            }
+            if ( !category_id && !prices.length ) {
+                const flowers = await Flower.findAndCountAll( { limit, offset } )
+                console.log( 'line 69 fl.ad.co' )
+                // console.log(flowers,"<-------flowers")
+                return res.status( 200 ).json( { count: flowers.count, flowers: flowers.rows } )
+            }
+        } catch ( error ) {
+            next( apiError.badRequest( error.message ) )
         }
-        if(!category_id && !prices.length){
-            const flowers = await Flower.findAndCountAll({limit,offset})
-            return res.status(200).json({count: flowers.count, flowers: flowers.rows})
-        }
-    } catch ( error ) {
-        next(apiError.badRequest(error.message))
-    }
 
     }
 
@@ -107,10 +92,8 @@ class FlowerAdminController {
             const { photo } = req.files
             let filename = uuid.v4() + '.jpg'
             await photo.mv( path.resolve( __dirname, '..', 'static', filename ) )
-            // categories = JSON.parse(categories)
-            // tags = JSON.parse(tags)
-            categories = [ 1, 2, 6, 9 ]
-            tags = [ 'tag1', 'tag2', 'tag3', 'tag4' ]
+            categories = JSON.parse( categories )
+            tags = JSON.parse( tags )
             const flower = await Flower.create( {
                 name,
                 isNew,
@@ -145,16 +128,27 @@ class FlowerAdminController {
     async editFlower( req, res, next ) {
         try {
             let { id, name, isNew, price, slug, inSale, discount, lastPrice, aboutFlower, tags, categories } = req.body
-            // categories = JSON.parse(categories)
-            // tags = JSON.parse(tags)
-            tags = [ 'tags1', 'tags2' ]
-            categories = [ 1, 2, 3, 4 ]
+            categories = JSON.parse( categories )
+            tags = JSON.parse( tags )
+            let filename = ''
+            if ( req.files ) {
+                const { photo } = req.files
+                filename = uuid.v4() + '.jpg'
+                await photo.mv( path.resolve( __dirname, '..', 'static', filename ) )
+                const flower = await Flower.findOne( { where: { id } } )
+                await fs.unlink( path.resolve( __dirname, '..', 'static', flower.photo ), error => {
+                    if ( error ) {
+                        return next( apiError.badRequest( error.message ) )
+                    }
+                } )
+            }
             const flower = await Flower.update( {
                 name,
                 isNew,
                 price,
                 slug,
                 inSale,
+                photo: filename || req.body.photo,
                 discount,
                 lastPrice,
                 aboutFlower,
@@ -182,12 +176,13 @@ class FlowerAdminController {
     async deleteFlower( req, res, next ) {
         try {
             let { id, categories } = req.body
+            // console.log(typeof id, Array.isArray(categories))
             const flower = await Flower.findOne( { where: { id } } )
             await fs.unlink( path.resolve( __dirname, '..', 'static', flower.photo ), error => {
-                apiError.badRequest(error.message)
+                if ( error ) {
+                    return next( apiError.badRequest( error.message ) )
+                }
             } )
-            // categories = JSON.parse(categories)
-            categories = [ 1, 2 ]
             await Flower.destroy( { where: { id } } )
             await Categories.update(
                 { flower_ids: sequelize.fn( 'array_remove', sequelize.col( 'flower_ids' ), id ) },
