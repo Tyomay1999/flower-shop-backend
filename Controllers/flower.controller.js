@@ -39,12 +39,13 @@ class FlowerController {
     }
 
     async getSimilar(req, res, next) {
+        console.log(req.body.categories,'<------categories')
         try {
             const {categories} = req.body
             const similarFlowersCategories = await Categories.findAll({
                 where: {
                     id: {
-                        [Op.or]: categories
+                        [Op.or]: JSON.parse(categories)
                     }
                 }
             })
@@ -56,7 +57,7 @@ class FlowerController {
                     }
                 }
             })
-            return res.status(200).json({message: data})
+            return res.status(200).json({similarFlowers: data})
         } catch (error) {
             next(apiError.badRequest(error.message))
         }
@@ -64,8 +65,8 @@ class FlowerController {
 
     async getNewFlowers(req, res, next) {
         try {
-            const newFlowers = await Flower.findAll({where: {isNew: false}})
-            return res.status(200).json({message : newFlowers})
+            const newFlowers = await Flower.findAll({where: {isNew: true}})
+            return res.status(200).json({newFlowers})
         } catch (error) {
             next(apiError.badRequest(error.message))
         }
@@ -79,6 +80,23 @@ class FlowerController {
             }
             const flower = await Flower.findOne({where: {slug}})
             return res.status(200).json({flower})
+        } catch (error) {
+            next(apiError.badRequest(error.message))
+        }
+    }
+
+    async getFlowersWithIds(req, res, next) {
+        try {
+            const {flowerIds} = req.body
+            console.log(JSON.parse(flowerIds))
+            const flowers = await Flower.findAll({
+                where: {
+                    id: {
+                        [Op.or] : JSON.parse(flowerIds)
+                    }
+                }
+            })
+            return res.status(200).json({flowers})
         } catch (error) {
             next(apiError.badRequest(error.message))
         }
