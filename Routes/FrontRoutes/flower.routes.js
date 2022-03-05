@@ -4,6 +4,7 @@ const FlowerController = require('../../Controllers/flower.controller')
 const router = new Router()
 
 router.get('/all', FlowerController.allFlowers)
+router.post('/all', FlowerController.getByIds)
 router.get('/slug/:slug', FlowerController.getOne)
 router.post('/similar', FlowerController.getSimilar)
 router.get('/new', FlowerController.getNewFlowers)

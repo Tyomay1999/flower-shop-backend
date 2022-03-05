@@ -1,5 +1,6 @@
 const apiError = require( '../Error/apiError' )
 const { Orders } = require( "../Models/model" );
+const { INTEGER, STRING } = require( "sequelize" );
 
 class OrdersController {
     async getOrders( req, res, next ) {
@@ -20,10 +21,21 @@ class OrdersController {
     async setOrder( req, res, next ) {
         try {
             const status = 1
-            const order = await Orders.create( {
-                ...req.body, status
-            } )
-            return res.status( 200 ).json( { message: 'Order successful send' } )
+            const shippingDetails = JSON.parse(req.body?.shippingDetails),//Recipient info
+                paymentDetails = JSON.parse(req.body?.paymentDetails),//cart info
+                orderDetails = JSON.parse(req.body?.orderDetails)//totalPrice,flowerIds
+           //totalPrice = orderDetails[0]
+
+            const orderData = {
+                status,
+                email: shippingDetails.email,
+                address: shippingDetails.address,
+                firstName: shippingDetails.firstName,
+                deliveryTime: shippingDetails.deliveryTime,
+                deliveryDate: shippingDetails.deliveryDate,
+                personalMessage: shippingDetails.personalMessage,
+            }
+            return res.status( 200 ).json( { message: req.body } )
         } catch ( error ) {
             next( apiError.badRequest( error.message ) )
         }

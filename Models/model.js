@@ -53,14 +53,15 @@ const CustomerMessages = sequelize.define( 'customer_messages', {
 const Orders = sequelize.define( 'orders', {
     id: { type: INTEGER, primaryKey: true, autoIncrement: true },
     status: { type: INTEGER, allowNull: false },
-    email: { type: STRING, allowNull: false },
+    email: { type: STRING, allowNull: true },
     phone: { type: STRING, allowNull: false },
     address: { type: STRING, allowNull: false },
-    lastName: { type: STRING, allowNull: false },
     firstName: { type: STRING, allowNull: false },
+    lastName: { type: STRING, allowNull: true },
     deliveryTime: { type: STRING, allowNull: false },
     deliveryDate: { type: STRING, allowNull: false },
     personalMessage: { type: STRING, allowNull: true },
+    flowers_ids: {type: STRING, allowNull: false}
 } )
 
 // const ShippingDetails = sequelize.define('shippingDetails',{

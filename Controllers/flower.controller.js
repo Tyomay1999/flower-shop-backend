@@ -37,7 +37,23 @@ class FlowerController {
         }
         res.status(200).json({message: 'all'})
     }
-
+    async getByIds (req, res, next) {
+        try {
+            let flowers = []
+            if(req.body.flower_ids?.length){
+                flowers = await Flower.findAll({
+                    where: {
+                        id: {
+                            [Op.or]: JSON.parse(req.body.flower_ids)
+                        }
+                    }
+                })
+                return res.status(200).json({flowers})
+            }
+        } catch ( error ) {
+            next(apiError.badRequest(error.message))
+        }
+    }
     async getSimilar(req, res, next) {
         console.log(req.body.categories,'<------categories')
         try {
@@ -89,7 +105,7 @@ class FlowerController {
         try {
             const {flowerIds} = req.body
             console.log(JSON.parse(flowerIds))
-            const flowers = await Flower.findAll({
+            let flowers = await Flower.findAll({
                 where: {
                     id: {
                         [Op.or] : JSON.parse(flowerIds)
