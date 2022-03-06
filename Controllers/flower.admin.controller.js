@@ -199,6 +199,22 @@ class FlowerAdminController {
             next( apiError.badRequest( error.message ) )
         }
     }
+
+    async getFlowersWithIds(req, res, next) {
+        try {
+            const {flowerIds} = req.body
+            let flowers = await Flower.findAll({
+                where: {
+                    id: {
+                        [Op.or] : JSON.parse(flowerIds)
+                    }
+                }
+            })
+            return res.status(200).json({flowers})
+        } catch (error) {
+            next(apiError.badRequest(error.message))
+        }
+    }
 }
 
 module.exports = new FlowerAdminController()

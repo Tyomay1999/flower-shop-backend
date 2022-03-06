@@ -1,5 +1,5 @@
 const sequelize = require( '../db' )
-const { INTEGER, BOOLEAN, STRING, ARRAY } = require( "sequelize" );
+const { INTEGER, BOOLEAN, STRING, ARRAY, TEXT } = require( "sequelize" );
 
 // {
 //     id: 59,
@@ -61,7 +61,7 @@ const Orders = sequelize.define( 'orders', {
     deliveryTime: { type: STRING, allowNull: false },
     deliveryDate: { type: STRING, allowNull: false },
     personalMessage: { type: STRING, allowNull: true },
-    flowers_ids: {type: STRING, allowNull: false}
+    flowers_ids: {type: TEXT, allowNull: false}
 } )
 
 // const ShippingDetails = sequelize.define('shippingDetails',{

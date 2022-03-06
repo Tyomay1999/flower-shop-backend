@@ -3,7 +3,7 @@ const OrderController = require( "../../Controllers/order.controller" );
 
 const router = new Router()
 
-router.post('/all', OrderController.getOrders)
+router.get('/all', OrderController.getOrders)
 router.post('/set', OrderController.setOrder)
 router.put('/change', OrderController.changeOrderStatus)
 router.delete('/delete', OrderController.deleteOrder)
