@@ -44,7 +44,7 @@ class FlowerAdminController {
                     if ( product.categories.length ) {
                         const categoriesArray = []
                         product.categories.forEach( categoryId => {
-                            categoriesArray.push( categories.filter( category => category.id === categoryId )[0].name )
+                            categoriesArray.push( categories.filter( category => category.id === categoryId )[0]?.name )
                         } )
                         product.categories = categoriesArray
                     }
@@ -85,7 +85,18 @@ class FlowerAdminController {
         }
 
     }
-
+    async getNewFlowers (req,res,next){
+        try {
+            const flowers = await Flower.findAll({
+                where: {
+                    isNew: true
+                }
+            })
+            res.status(200).json({flowers})
+        } catch (error){
+            next(apiError.badRequest(error.message))
+        }
+    }
     async addFlower( req, res, next ) {
         try {
             let { name, isNew, price, slug, inSale, discount, lastPrice, aboutFlower, tags, categories } = req.body
@@ -136,11 +147,13 @@ class FlowerAdminController {
                 filename = uuid.v4() + '.jpg'
                 await photo.mv( path.resolve( __dirname, '..', 'static', filename ) )
                 const flower = await Flower.findOne( { where: { id } } )
-                await fs.unlink( path.resolve( __dirname, '..', 'static', flower.photo ), error => {
-                    if ( error ) {
-                        return next( apiError.badRequest( error.message ) )
-                    }
-                } )
+                if(path.resolve( __dirname, '..', 'static', flower.photo)){
+                    await fs.unlink( path.resolve( __dirname, '..', 'static', flower.photo ), error => {
+                        if ( error ) {
+                            return next( apiError.badRequest( error.message ) )
+                        }
+                    } )
+                }
             }
             const flower = await Flower.update( {
                 name,

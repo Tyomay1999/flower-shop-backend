@@ -4,6 +4,7 @@ const FlowerAdminController = require('../../Controllers/flower.admin.controller
 const router = new Router()
 
 router.post('/all', FlowerAdminController.getAll)
+router.get('/new', FlowerAdminController.getNewFlowers)
 router.post('/add', FlowerAdminController.addFlower)
 router.post('/cart', FlowerAdminController.getFlowersWithIds)
 router.put('/edit', FlowerAdminController.editFlower)
