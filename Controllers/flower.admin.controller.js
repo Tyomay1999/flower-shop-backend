@@ -237,6 +237,21 @@ class FlowerAdminController {
             next(apiError.badRequest(error.message))
         }
     }
+
+    async getSearchedFlowers (req, res, next){
+        try {
+            const {name} = req.body
+            console.log(name,'name')
+            let flowers = await Flower.findAndCountAll({
+                where: {
+                    name: name
+                }
+            })
+            return res.status(200).json({count: flowers.count ,flowers: flowers.rows})
+        } catch (error) {
+            next(apiError.badRequest(error.message))
+        }
+    }
 }
 
 module.exports = new FlowerAdminController()
