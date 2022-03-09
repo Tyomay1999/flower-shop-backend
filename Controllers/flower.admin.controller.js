@@ -27,18 +27,22 @@ class FlowerAdminController {
                     limit,
                     offset
                 } )
-                console.log( 'line 30 fl.ad.co' )
+                console.log( 'line 30 fl.ad.co', offset , '<-offset', page, '<-page', limit,'<-limit' )
                 return res.status( 200 ).json( { count: flowers.count, flowers: flowers.rows } )
             }
             if ( !category_id && prices.length ) {
                 // prices = JSON.parse(prices)
                 const categories = await Categories.findAll()
                 const filteredFlowers = []
-                const flowers = await Flower.findAndCountAll( { limit, offset } )
-                flowers.rows.forEach( flower => {
-                    if ( prices[ 0 ] < flower.price && flower.price < prices[ 1 ] ) {
-                        filteredFlowers.push( { flower } )
-                    }
+                const flowers = await Flower.findAndCountAll( {
+                    where: {
+                        price: {
+                            [ Op.gte ]: prices[0],
+                            [ Op.lte ]: prices[1],
+                        }
+                    },
+                    limit,
+                    offset
                 } )
                 flowers.rows.map( async ( product ) => {
                     if ( product.categories.length ) {
@@ -49,8 +53,13 @@ class FlowerAdminController {
                         product.categories = categoriesArray
                     }
                 } )
-                console.log( 'line 42 fl.ad.co' )
-                return res.status( 200 ).json( { count: flowers.count, flowers: filteredFlowers } )
+                // flowers.rows.forEach( flower => {
+                //     if ( prices[ 0 ] < flower.price && flower.price < prices[ 1 ] ) {
+                //         filteredFlowers.push( { flower } )
+                //     }
+                // } )
+                console.log( 'line 42 fl.ad.co', offset , '<-offset', page, '<-page', limit,'<-limit' )
+                return res.status( 200 ).json( { count: flowers.count, flowers: flowers.rows } )
             }
             if ( category_id && prices.length ) {
 
@@ -66,17 +75,17 @@ class FlowerAdminController {
                     limit,
                     offset
                 } )
-                console.log( 'line 59 fl.ad.co' )
                 flowers.rows.forEach( flower => {
                     if ( prices[ 0 ] < flower.price && flower.price < prices[ 1 ] ) {
                         filteredFlowers.push( flower )
                     }
                 } )
+                console.log( 'line 59 fl.ad.co', offset , '<-offset', page, '<-page', limit,'<-limit' )
                 return res.status( 200 ).json( { count: flowers.count, flowers: filteredFlowers } )
             }
             if ( !category_id && !prices.length ) {
                 const flowers = await Flower.findAndCountAll( { limit, offset } )
-                console.log( 'line 69 fl.ad.co' )
+                console.log( 'line 69 fl.ad.co', offset , '<-offset', page, '<-page', limit,'<-limit' )
                 // console.log(flowers,"<-------flowers")
                 return res.status( 200 ).json( { count: flowers.count, flowers: flowers.rows } )
             }
