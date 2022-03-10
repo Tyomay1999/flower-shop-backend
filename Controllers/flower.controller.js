@@ -30,12 +30,77 @@ const handlerIdSorts = async data => {
 class FlowerController {
     async allFlowers(req, res, next) {
         try {
-            const flowers = await Flower.findAll()
-            return res.status(200).json({flowers})
-        } catch (error) {
-            next(apiError.badRequest(error.message))
+            let { category_id, prices, limit, page } = req.body
+            prices = prices || [ 0, 15 ]
+            limit = limit || 10
+            page = page || 1
+            const offset = page * limit - limit
+            if ( category_id && !prices.length ) {
+                const category = await Categories.findOne( { where: { id: category_id } } )
+                const flowers = await Flower.findAndCountAll( {
+                    where: {
+                        id: {
+                            [ Op.or ]: category.flower_ids
+                        }
+                    },
+                    limit,
+                    offset
+                } )
+                console.log( 'line 30 fl.ad.co', offset , '<-offset', page, '<-page', limit,'<-limit' )
+                return res.status( 200 ).json( { count: flowers.count, flowers: flowers.rows } )
+            }
+            if ( !category_id && prices.length ) {
+                const categories = await Categories.findAll()
+                const flowers = await Flower.findAndCountAll( {
+                    where: {
+                        price: {
+                            [ Op.gte ]: prices[0],
+                            [ Op.lte ]: prices[1],
+                        }
+                    },
+                    limit,
+                    offset
+                } )
+                flowers.rows.map( async ( product ) => {
+                    if ( product.categories.length ) {
+                        const categoriesArray = []
+                        product.categories.forEach( categoryId => {
+                            categoriesArray.push( categories.filter( category => category.id === categoryId )[0]?.name )
+                        } )
+                        product.categories = categoriesArray
+                    }
+                } )
+                console.log( 'line 42 fl.ad.co', offset , '<-offset', page, '<-page', limit,'<-limit' )
+                return res.status( 200 ).json( { count: flowers.count, flowers: flowers.rows } )
+            }
+            if ( category_id && prices.length ) {
+                const filteredFlowers = []
+                const category = await Categories.findOne( { where: { id: category_id } } )
+                const flowers = await Flower.findAndCountAll( {
+                    where: {
+                        id: {
+                            [ Op.or ]: category.flower_ids
+                        }
+                    },
+                    limit,
+                    offset
+                } )
+                flowers.rows.forEach( flower => {
+                    if ( prices[ 0 ] < flower.price && flower.price < prices[ 1 ] ) {
+                        filteredFlowers.push( flower )
+                    }
+                } )
+                console.log( 'line 59 fl.ad.co', offset , '<-offset', page, '<-page', limit,'<-limit' )
+                return res.status( 200 ).json( { count: flowers.count, flowers: filteredFlowers } )
+            }
+            if ( !category_id && !prices.length ) {
+                const flowers = await Flower.findAndCountAll( { limit, offset } )
+                console.log( 'line 69 fl.ad.co', offset , '<-offset', page, '<-page', limit,'<-limit' )
+                return res.status( 200 ).json( { count: flowers.count, flowers: flowers.rows } )
+            }
+        } catch ( error ) {
+            next( apiError.badRequest( error.message ) )
         }
-        res.status(200).json({message: 'all'})
     }
     async getByIds (req, res, next) {
         try {
@@ -57,7 +122,8 @@ class FlowerController {
     async getSimilar(req, res, next) {
         console.log(req.body.categories,'<------categories')
         try {
-            const {categories} = req.body
+            const {categories, page, limit = 6} = req.body
+            const offset = page * limit - limit
             const similarFlowersCategories = await Categories.findAll({
                 where: {
                     id: {
@@ -66,14 +132,16 @@ class FlowerController {
                 }
             })
             const flowersId = await handlerIdSorts(similarFlowersCategories)
-            const data = await Flower.findAll({
+            const data = await Flower.findAndCountAll({
                 where: {
                     id: {
                         [Op.or]: flowersId
                     }
-                }
+                },
+                limit,
+                offset
             })
-            return res.status(200).json({similarFlowers: data})
+            return res.status(200).json({count: data.count ,similarFlowers: data.rows})
         } catch (error) {
             next(apiError.badRequest(error.message))
         }
@@ -81,8 +149,16 @@ class FlowerController {
 
     async getNewFlowers(req, res, next) {
         try {
-            const newFlowers = await Flower.findAll({where: {isNew: true}})
-            return res.status(200).json({newFlowers})
+            let { limit, page } = req.body
+            limit = limit || 9;
+            page = page || 1;
+            const offset = page * limit - limit
+            const newFlowers = await Flower.findAndCountAll({
+                where: { isNew: true },
+                limit,
+                offset
+            })
+            return res.status(200).json({count: newFlowers.count, flowers: newFlowers.rows})
         } catch (error) {
             next(apiError.badRequest(error.message))
         }
@@ -113,6 +189,21 @@ class FlowerController {
                 }
             })
             return res.status(200).json({flowers})
+        } catch (error) {
+            next(apiError.badRequest(error.message))
+        }
+    }
+
+    async getSearchedFlowers (req, res, next){
+        try {
+            const {name} = req.body
+            console.log(name,'name')
+            let flowers = await Flower.findAndCountAll({
+                where: {
+                    name: name
+                }
+            })
+            return res.status(200).json({count: flowers.count ,flowers: flowers.rows})
         } catch (error) {
             next(apiError.badRequest(error.message))
         }
