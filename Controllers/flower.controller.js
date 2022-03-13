@@ -74,24 +74,22 @@ class FlowerController {
                 return res.status( 200 ).json( { count: flowers.count, flowers: flowers.rows } )
             }
             if ( category_id && prices.length ) {
-                const filteredFlowers = []
                 const category = await Categories.findOne( { where: { id: category_id } } )
                 const flowers = await Flower.findAndCountAll( {
                     where: {
                         id: {
                             [ Op.or ]: category.flower_ids
+                        },
+                        price: {
+                            [ Op.gte ]: prices[0],
+                            [ Op.lte ]: prices[1],
                         }
                     },
                     limit,
                     offset
                 } )
-                flowers.rows.forEach( flower => {
-                    if ( prices[ 0 ] < flower.price && flower.price < prices[ 1 ] ) {
-                        filteredFlowers.push( flower )
-                    }
-                } )
-                console.log( 'line 59 fl.ad.co', offset , '<-offset', page, '<-page', limit,'<-limit' )
-                return res.status( 200 ).json( { count: flowers.count, flowers: filteredFlowers } )
+                console.log( 'line 59 fl.ad.co', offset , '<-offset', page, '<-page', limit,'<-limit', prices, "<-prices" )
+                return res.status( 200 ).json( { count: flowers.count, flowers: flowers.rows } )
             }
             if ( !category_id && !prices.length ) {
                 const flowers = await Flower.findAndCountAll( { limit, offset } )
