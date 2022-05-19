@@ -4,7 +4,7 @@ const { Categories } = require( "../Models/model" );
 class CategoriesAdminController {
     async getAllCategories( req, res ) {
         const categories = await Categories.findAll()
-        return res.status( 200 ).json( { categories } )
+        return res.status( 200 ).json( { categories, admin: req.admin } )
     }
 
     async addCategory( req, res, next ) {

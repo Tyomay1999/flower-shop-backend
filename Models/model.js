@@ -1,25 +1,6 @@
 const sequelize = require( '../db' )
-const { INTEGER, BOOLEAN, STRING, ARRAY, TEXT } = require( "sequelize" );
+const { INTEGER, BOOLEAN, STRING, ARRAY, TEXT, NUMBER } = require( "sequelize" );
 
-// {
-//     id: 59,
-//         name: 'Flower name',
-//     photo: cardLocalImages.product9,
-//     price: 12.99,
-//     lastPrice: 15.99,
-//     discount: 20,
-//     isNew: false,
-//     slug: uuidv4(),
-//     tags: ['color', 'type', 'single', 'bouquet'],
-//     aboutFlower: `
-//             Lorem50 ipsum dolor sit amet, consectetur adipisicing elit.
-//             Accusantium alias assumenda deleniti eos id ipsa labore laborum
-//             reiciendis, sapiente soluta, suscipit tenetur voluptas. Asperiores
-//             aspernatur dignissimos, ea eligendi eum explicabo fugit harum in
-//             mollitia, neque nulla quasi qui rerum sapiente, tempora unde vitae
-//             voluptas voluptate. Doloremque in similique ullam! Ut.
-//           `
-// }
 
 const Flower = sequelize.define( 'flower', {
     id: { type: INTEGER, primaryKey: true, autoIncrement: true },
@@ -68,9 +49,21 @@ const Orders = sequelize.define( 'orders', {
 //        id: { type: INTEGER, primaryKey: true, autoIncrement: true },
 // })
 
+const Admins = sequelize.define( 'admins', {
+    id: { type: INTEGER, primaryKey: true, autoIncrement: true },
+    email: { type: STRING, allowNull: true },
+    status: { type: INTEGER, allowNull: true },
+    password: {type: STRING, allowNull: false}
+} )
+
+
 Flower.hasMany( Categories, { as: 'category' } )
 Categories.belongsTo( Flower )
 
 module.exports = {
-    Flower, Categories, CustomerMessages, Orders
+    Flower,
+    Categories,
+    CustomerMessages,
+    Orders,
+    Admins
 }

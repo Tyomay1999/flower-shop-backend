@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 5000
 const errorHandler = require( './Middleware/errorHandlingMiddleware' )
 const path = require( 'path' )
 const app = express()
-
+const AdminsController = require('./Controllers/admins.controller')
 app.use( cors() )
 app.use( express.json() )
 app.use( express.static( path.resolve( __dirname, 'static' ) ) )
@@ -28,6 +28,7 @@ const start = async () => {
     try {
         await sequelize.authenticate()
         await sequelize.sync()
+        AdminsController.checkA()
         app.listen( PORT, () => console.log( `Server has been started in ${ PORT }...` ) )
     } catch ( error ) {
         console.log( error )
