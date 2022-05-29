@@ -207,7 +207,7 @@ class FlowerAdminController {
                 { flower_ids: sequelize.fn( 'array_remove', sequelize.col( 'flower_ids' ), id ) },
                 {
                     where: {
-                        id: {
+                        name: {
                             [ Op.or ]: categories
                         }
                     }
